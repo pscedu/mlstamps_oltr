@@ -127,3 +127,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+#local directories
+logdir
+dataset
+model-checkpoints-and-logs
+OLTRDataset
+data
+
