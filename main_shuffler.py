@@ -16,12 +16,12 @@ import torch
 from torchvision import transforms
 # logging.basicConfig(level=1)
 
-sys.path.append('/ocean/projects/pscstaff/rajanie/MLStamps/long-tail/OpenLongTailRecognition-OLTR')
+sys.path.append('/ocean/projects/pscstaff/rajanie/MLStamps/long-tail/mlstamps-oltr')
 db_file = '/ocean/projects/pscstaff/rajanie/MLStamps/long-tail/OpenLongTailRecognition-OLTR/campaign6-6Kx4K.v6.db'
 rootdir = '/ocean/projects/pscstaff/rajanie/MLStamps/long-tail/OpenLongTailRecognition-OLTR/data'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--config', default='/ocean/projects/pscstaff/rajanie/MLStamps/long-tail/OpenLongTailRecognition-OLTR/config/stamps/stage_1.py', type=str)
+parser.add_argument('--config', default='/ocean/projects/pscstaff/rajanie/MLStamps/long-tail/mlstamps-oltr/config/stamps/stage_1.py', type=str)
 parser.add_argument('--test', default=False, action='store_true')
 parser.add_argument('--test_open', default=False, action='store_true')
 parser.add_argument('--output_logits', default=False)
@@ -74,6 +74,10 @@ if not test_mode:
     num_samples = data.__len__()
     print("\nTotal number of samples", num_samples)
     #print([data[x]['name'] for x in range(0,data.__len__()-1)])
+
+    x = [data[x]['image'] for x in range(0,data.__len__()-1)]
+    print(x)
+    y = [data[x]['name'] for x in range(0,data.__len__()-1)]
     
 
     train_x, test_val_x, train_y, test_val_y = sklearn.model_selection.train_test_split([data[x]['image'] for x in range(0,data.__len__()-1)], [data[x]['name'] for x in range(0,data.__len__()-1)], test_size=0.3, random_state=1, stratify=[data[x]['name'] for x in range(0,data.__len__()-1)])
