@@ -6,6 +6,7 @@ from data import dataloader
 from run_networks import model
 import warnings
 import logging
+import numpy as np
 import sklearn.model_selection
 
 from utils import source_import
@@ -14,6 +15,8 @@ from shuffler.interface.pytorch import datasets
 
 import torch
 from torchvision import transforms
+from torch.utils.data.sampler import SubsetRandomSampler
+
 # logging.basicConfig(level=1)
 
 sys.path.append('/ocean/projects/pscstaff/rajanie/MLStamps/long-tail/mlstamps-oltr')
@@ -71,32 +74,36 @@ if not test_mode:
                             used_keys=['image', 'objectid', 'name', 'num_instances'],
                             transform_group={'image': transform})
 
-    num_samples = data.__len__()
-    print("\nTotal number of samples", num_samples)
-    #print([data[x]['name'] for x in range(0,data.__len__()-1)])
+    dataset_size = data.__len__()
+    print("\nTotal number of samples", dataset_size)
 
-    x = [data[x]['image'] for x in range(0,data.__len__()-1)]
-    print(x)
-    y = [data[x]['name'] for x in range(0,data.__len__()-1)]
-    
+    validation_split = .2
+    random_seed = 1
+    shuffle = True
+    indices = list(range(dataset_size))
+    split = int(np.floor(validation_split * dataset_size))
+    # if shuffle :
+    #     np.random.seed(random_seed)
+    #     np.random.shuffle(indices)
 
-    train_x, test_val_x, train_y, test_val_y = sklearn.model_selection.train_test_split([data[x]['image'] for x in range(0,data.__len__()-1)], [data[x]['name'] for x in range(0,data.__len__()-1)], test_size=0.3, random_state=1, stratify=[data[x]['name'] for x in range(0,data.__len__()-1)])
-    val_x, test_x, val_y, test_y = sklearn.model_selection.train_test_split(test_val_x, test_val_y, test_size=0.5, random_state=1, stratify=test_val_y)
+    train_indices, val_indices = indices[split:], indices[:split]
+    train_sampler = SubsetRandomSampler(train_indices)
+    valid_sampler = SubsetRandomSampler(val_indices)
 
-    print("Training samples ", len(train_y))
-    print("Validation samples ", len(val_y))
-    print("Testing samples ", len(test_y))
+    print("Training samples ", len(train_sampler))
+    print("Validation samples ", len(valid_sampler))
+    #print("Testing samples ", len(test_y))
 
-    
-    
-
-    final_train_data = torch.utils.data.DataLoader(data,
+    train_dataloader = torch.utils.data.DataLoader(data,
                                               batch_size=training_opt['batch_size'],
-                                              shuffle=True,
-                                              num_workers=training_opt['num_workers'])
+                                              num_workers=training_opt['num_workers'], sampler=train_sampler)
+
+    test_dataloader = torch.utils.data.DataLoader(data,
+                                              batch_size=training_opt['batch_size'],
+                                              num_workers=training_opt['num_workers'], sampler=valid_sampler)
 
 
-    training_model = model(config, final_train_data, test=False)
+    training_model = model(config, train_dataloader, test=False)
 
     training_model.train()
     dataset.close()
