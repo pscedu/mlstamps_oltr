@@ -201,7 +201,7 @@ class model ():
             for step, batch in enumerate(self.data):
 
                 print("inside batch loop")
-                print(batch)
+                #print(batch)
 
                 # Break when step equal to epoch step
                 if step == self.epoch_steps:

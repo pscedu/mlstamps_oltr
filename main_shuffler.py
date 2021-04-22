@@ -19,12 +19,12 @@ from torch.utils.data.sampler import SubsetRandomSampler
 
 # logging.basicConfig(level=1)
 
-sys.path.append('/ocean/projects/pscstaff/rajanie/MLStamps/long-tail/mlstamps-oltr')
-db_file = '/ocean/projects/pscstaff/rajanie/MLStamps/long-tail/OpenLongTailRecognition-OLTR/campaign6-6Kx4K.v6.db'
-rootdir = '/ocean/projects/pscstaff/rajanie/MLStamps/long-tail/OpenLongTailRecognition-OLTR/data'
+sys.path.append('/ocean/projects/hum180001p/prabha/mlstamps_oltr')
+db_file = '/ocean/projects/hum180001p/etoropov/campaign6/crops/campaign3to6-6Kx4K.v7-croppedStamps.db'
+rootdir = '/ocean/projects/hum180001p/shared/data'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--config', default='/ocean/projects/pscstaff/rajanie/MLStamps/long-tail/mlstamps-oltr/config/stamps/stage_1.py', type=str)
+parser.add_argument('--config', default='/ocean/projects/hum180001p/prabha/mlstamps_oltr/config/stamps/stage_1.py', type=str)
 parser.add_argument('--test', default=False, action='store_true')
 parser.add_argument('--test_open', default=False, action='store_true')
 parser.add_argument('--output_logits', default=False)
