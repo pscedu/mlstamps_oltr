@@ -8,6 +8,7 @@ import warnings
 import logging
 import numpy as np
 import sklearn.model_selection
+from sklearn import preprocessing 
 
 from utils import source_import
 from shuffler.lib.utils import testUtils
@@ -20,7 +21,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 # logging.basicConfig(level=1)
 
 sys.path.append('/ocean/projects/hum180001p/prabha/mlstamps_oltr')
-db_file = '/ocean/projects/hum180001p/etoropov/campaign6/crops/campaign3to6-6Kx4K.v7-croppedStamps.db'
+db_file = '/ocean/projects/hum180001p/etoropov/campaign6/crops/campaign3to6-6Kx4K.v7.1-croppedStamps.db'
 rootdir = '/ocean/projects/hum180001p/shared/data'
 
 parser = argparse.ArgumentParser()
@@ -71,17 +72,24 @@ if not test_mode:
                             rootdir=rootdir,
                             where_object="name NOT LIKE '%page%'",
                             mode='r',
-                            used_keys=['image', 'objectid', 'name', 'num_instances'],
-                            transform_group={'image': transform})
-
+                            used_keys=['image', 'objectid', 'name', 'num_instances', 'name_id'],
+                            transform_group={'image': transform, 'name_id': lambda x: int(x)})
     dataset_size = data.__len__()
+
+
     print("\nTotal number of samples", dataset_size)
+
+    training_opt['num_classes'] = max([item["name_id"] for item in data])
+    print(training_opt['num_classes'])
+
+    open_set = [item for item in data if item["name_id"]==-1]
+    train_val_set = [item for item in data if item["name_id"]!=-1]
 
     validation_split = .2
     random_seed = 1
     shuffle = True
-    indices = list(range(dataset_size))
-    split = int(np.floor(validation_split * dataset_size))
+    indices = list(range(train_val_set.__len__()))
+    split = int(np.floor(validation_split * train_val_set.__len__()))
     # if shuffle :
     #     np.random.seed(random_seed)
     #     np.random.shuffle(indices)
@@ -94,11 +102,13 @@ if not test_mode:
     print("Validation samples ", len(valid_sampler))
     #print("Testing samples ", len(test_y))
 
-    train_dataloader = torch.utils.data.DataLoader(data,
+    train_dataloader = torch.utils.data.DataLoader(train_val_set,
                                               batch_size=training_opt['batch_size'],
                                               num_workers=training_opt['num_workers'], sampler=train_sampler)
 
-    test_dataloader = torch.utils.data.DataLoader(data,
+    
+
+    test_dataloader = torch.utils.data.DataLoader(train_val_set,
                                               batch_size=training_opt['batch_size'],
                                               num_workers=training_opt['num_workers'], sampler=valid_sampler)
 

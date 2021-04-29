@@ -187,12 +187,12 @@ class model ():
         best_epoch = 0
 
         end_epoch = self.training_opt['num_epochs']
-
         # Loop over epochs
         for epoch in range(1, end_epoch + 1):
 
             for model in self.networks.values():
                 model.train()
+                model.cuda()
                 
             torch.cuda.empty_cache()
             
@@ -204,17 +204,15 @@ class model ():
                 #print(batch)
 
                 # Break when step equal to epoch step
-                if step == self.epoch_steps:
-                    break
+                # if step == self.epoch_steps:
+                #     break
 
                 inputs = batch['image']
-                labels = batch['name']
+                labels = batch['name_id']
                 objectids = batch['objectid']
 
-                print(inputs)
-                print(labels)
 
-                inputs, labels = inputs.to(self.device), labels.to(self.device)
+                inputs, labels = inputs.cuda(), labels.cuda()
 
                 # If on training phase, enable gradients
                 with torch.set_grad_enabled(True):
@@ -228,7 +226,7 @@ class model ():
 
                     # Output minibatch training results
                     #if step % self.training_opt['display_step'] == 0:
-                    if step:
+                    while(1):
                         minibatch_loss_feat = self.loss_feat.item() \
                             if 'FeatureLoss' in self.criterions.keys() else None
                         minibatch_loss_perf = self.loss_perf.item()
@@ -245,6 +243,7 @@ class model ():
                                      % (minibatch_loss_perf),
                                      'Minibatch_accuracy_micro: %.3f'
                                       % (minibatch_acc)]
+                        print(print_str)
                         print_write(print_str, self.log_file)
 
 
