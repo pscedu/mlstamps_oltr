@@ -21,13 +21,14 @@ from pytorch_lightning import metrics
 
 class model ():
     
-    def __init__(self, config, data, test=False):
+    def __init__(self, config, data, val_data, test=False):
 
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.config = config
         self.training_opt = self.config['training_opt']
         self.memory = self.config['memory']
         self.data = data
+        self.val_data = val_data
         self.test_mode = test
         
         # Initialize model
@@ -65,8 +66,6 @@ class model ():
         networks_defs = self.config['networks']
         self.networks = {}
         self.model_optim_params_list = []
-
-        print("Using", torch.cuda.device_count(), "GPUs.")
         
         for key, val in networks_defs.items():
 
@@ -121,60 +120,13 @@ class model ():
         scheduler = optim.lr_scheduler.StepLR(optimizer,
                                               step_size=self.scheduler_params['step_size'],
                                               gamma=self.scheduler_params['gamma'])
-        return optimizer, scheduler
+        return optimizer, scheduler    
 
-    def batch_forward (self, inputs, labels=None, centroids=False, feature_ext=False, phase='train'):
-        '''
-        This is a general single batch running function. 
-        '''
-
-        # Calculate Features
-        self.features, self.feature_maps = self.networks['feat_model'](inputs)
-
-        # If not just extracting features, calculate logits
-        if not feature_ext:
-
-            # During training, calculate centroids if needed to 
-            if phase != 'test':
-                if centroids and 'FeatureLoss' in self.criterions.keys():
-                    self.centroids = self.criterions['FeatureLoss'].centroids.data
-                else:
-                    self.centroids = None
-
-            # Calculate logits with classifier
-            self.logits, self.direct_memory_feature = self.networks['classifier'](self.features, self.centroids)
-
-    def batch_backward(self):
-        # Zero out optimizer gradients
-        self.model_optimizer.zero_grad()
-        if self.criterion_optimizer:
-            self.criterion_optimizer.zero_grad()
-        # Back-propagation from loss outputs
-        self.loss.backward()
-        # Step optimizers
-        self.model_optimizer.step()
-        if self.criterion_optimizer:
-            self.criterion_optimizer.step()
-
-    def batch_loss(self, labels):
-
-        # First, apply performance loss
-        self.loss_perf = self.criterions['PerformanceLoss'](self.logits, labels) \
-                    * self.criterion_weights['PerformanceLoss']
-
-        # Add performance loss to total loss
-        self.loss = self.loss_perf
-
-        # Apply loss on features if set up
-        if 'FeatureLoss' in self.criterions.keys():
-            self.loss_feat = self.criterions['FeatureLoss'](self.features, labels)
-            self.loss_feat = self.loss_feat * self.criterion_weights['FeatureLoss']
-            # Add feature loss to total loss
-            self.loss += self.loss_feat
-
+        
     def train(self):
 
         # When training the network
+        phase = "train"
         print_str = ['Phase: train']
         print_write(print_str, self.log_file)
         time.sleep(0.25)
@@ -198,9 +150,10 @@ class model ():
             
 
             # Iterate over dataset
+            epoch_loss = 0.0
             for step, batch in enumerate(self.data):
 
-                print("inside batch loop")
+                #print("inside batch loop")
                 #print(batch)
 
                 # Break when step equal to epoch step
@@ -218,43 +171,75 @@ class model ():
                 with torch.set_grad_enabled(True):
                         
                     # If training, forward with loss, and no top 5 accuracy calculation
-                    self.batch_forward(inputs, labels, 
-                                       centroids=self.memory['centroids'],
-                                       phase='train')
-                    self.batch_loss(labels)
-                    self.batch_backward()
+
+
+                    self.features, self.feature_maps = self.networks['feat_model'](inputs)
+                    centroids=self.memory['centroids']
+                    feature_ext = False
+                    if not feature_ext:
+                        # During training, calculate centroids if needed to 
+                        if phase != 'test':
+                            if centroids and 'FeatureLoss' in self.criterions.keys():
+                                self.centroids = self.criterions['FeatureLoss'].centroids.data
+                            else:
+                                self.centroids = None
+
+                                # Calculate logits with classifier
+                        self.logits, self.direct_memory_feature = self.networks['classifier'](self.features, self.centroids)                           
+
+
+                    self.loss_perf = self.criterions['PerformanceLoss'](self.logits, labels) * self.criterion_weights['PerformanceLoss']
+
+                     # Add performance loss to total loss
+                    self.loss = self.loss_perf
+
+                     # Apply loss on features if set up
+                    if 'FeatureLoss' in self.criterions.keys():
+                        self.loss_feat = self.criterions['FeatureLoss'](self.features, labels)
+                        self.loss_feat = self.loss_feat * self.criterion_weights['FeatureLoss']
+                        self.loss += self.loss_feat
+
+                    epoch_loss = epoch_loss + self.loss
+                
+                    self.model_optimizer.zero_grad()
+                    if self.criterion_optimizer:
+                        self.criterion_optimizer.zero_grad()
+                    # Back-propagation from loss outputs
+                    self.loss.backward()
+                    self.model_optimizer.step()
+                    if self.criterion_optimizer:
+                        self.criterion_optimizer.step()
+
 
                     # Output minibatch training results
                     #if step % self.training_opt['display_step'] == 0:
-                    while(1):
-                        minibatch_loss_feat = self.loss_feat.item() \
-                            if 'FeatureLoss' in self.criterions.keys() else None
-                        minibatch_loss_perf = self.loss_perf.item()
-                        _, preds = torch.max(self.logits, 1)
-                        minibatch_acc = mic_acc_cal(preds, labels)
+                    # while(1):
+                    #     minibatch_loss_feat = self.loss_feat.item() \
+                    #         if 'FeatureLoss' in self.criterions.keys() else None
+                    #     minibatch_loss_perf = self.loss_perf.item()
+                    #     _, preds = torch.max(self.logits, 1)
+                    #     minibatch_acc = mic_acc_cal(preds, labels)
 
-                        print_str = ['Epoch: [%d/%d]' 
-                                     % (epoch, self.training_opt['num_epochs']),
-                                     'Step: %d' 
-                                     % (step),
-                                     'Minibatch_loss_feature: %.3f' 
-                                     % (minibatch_loss_feat) if minibatch_loss_feat else '',
-                                     'Minibatch_loss_performance: %.3f' 
-                                     % (minibatch_loss_perf),
-                                     'Minibatch_accuracy_micro: %.3f'
-                                      % (minibatch_acc)]
-                        print(print_str)
-                        print_write(print_str, self.log_file)
+                    #     print_str = ['Epoch: [%d/%d]' 
+                    #                  % (epoch, self.training_opt['num_epochs']),
+                    #                  'Step: %d' 
+                    #                  % (step),
+                    #                  'Minibatch_loss_feature: %.3f' 
+                    #                  % (minibatch_loss_feat) if minibatch_loss_feat else '',
+                    #                  'Minibatch_loss_performance: %.3f' 
+                    #                  % (minibatch_loss_perf),
+                    #                  'Minibatch_accuracy_micro: %.3f'
+                    #                   % (minibatch_acc)]
+                    #     print(print_str)
+                    #     print_write(print_str, self.log_file)
 
-
-            # Set model modes and set scheduler
-            # In training, step optimizer scheduler and set model to train()
-            self.model_optimizer_scheduler.step()
-            if self.criterion_optimizer:
-                self.criterion_optimizer_scheduler.step()
+            _, preds = torch.max(self.logits, 1)
+            epoch_accuracy = (preds == labels).sum().item() / len(labels)
+            print("Epoch-train-loss:'",epoch_loss.item(), " Epoch-train-accuracy:'", epoch_accuracy)
             
-            # After every epoch, validation
-            # self.eval(phase='val')
+            
+            After every epoch, validation
+            self.eval(self.val_data, phase='val')
 
             # # Under validation, the best model need to be updated
             # if self.eval_acc_mic_top1 > best_acc:
@@ -290,6 +275,7 @@ class model ():
         # In validation or testing mode, set model to eval() and initialize running loss/correct
         for model in self.networks.values():
             model.eval()
+            model.cuda()
 
         self.total_logits = torch.empty((0, self.training_opt['num_classes'])).to(self.device)
         self.total_labels = torch.empty(0, dtype=torch.long).to(self.device)

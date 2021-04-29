@@ -108,12 +108,12 @@ if not test_mode:
 
     
 
-    test_dataloader = torch.utils.data.DataLoader(train_val_set,
+    val_dataloader = torch.utils.data.DataLoader(train_val_set,
                                               batch_size=training_opt['batch_size'],
                                               num_workers=training_opt['num_workers'], sampler=valid_sampler)
 
 
-    training_model = model(config, train_dataloader, test=False)
+    training_model = model(config, train_dataloader, val_dataloader, test=False)
 
     training_model.train()
     dataset.close()
