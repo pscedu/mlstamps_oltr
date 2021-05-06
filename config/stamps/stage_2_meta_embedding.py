@@ -2,12 +2,12 @@
 config = {}
 
 training_opt = {}
-training_opt['dataset'] = 'ImageNet_LT'
-training_opt['log_dir'] = 'logs_256_top3/ImageNet_LT/meta_embedding'
-training_opt['num_classes'] = 201
+training_opt['dataset'] = 'Stamps'
+training_opt['log_dir'] = 'logs/stamps/stage1/meta_embedding'
+training_opt['num_classes'] = 405
 training_opt['batch_size'] = 128
-training_opt['num_workers'] = 8
-training_opt['num_epochs'] = 60
+training_opt['num_workers'] = 4
+training_opt['num_epochs'] = 100
 training_opt['display_step'] = 1
 training_opt['feature_dim'] = 512
 training_opt['open_threshold'] = 0.1

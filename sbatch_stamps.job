@@ -9,7 +9,11 @@ cd  /ocean/projects/hum180001p/prabha/mlstamps_oltr/
 
 conda activate mlstamps
 
-CUDA_VISIBLE_DEVICES=0,1 python main_shuffler.py --config config/stamps/stage_1.py
+# stage_1
+#CUDA_VISIBLE_DEVICES=0,1 python main_shuffler.py --config config/stamps/stage_1.py
+
+# stage_2
+CUDA_VISIBLE_DEVICES=0,1 python main_shuffler.py --config onfig/stamps/stage_2_meta_embedding.py
 
 # nvidia-smi --format=csv --query-gpu=timestamp,index,utilization.gpu,utilization.memory -l 1 > gpu_file 2>&1 &
 # python inference.py --config config/ImageNet_LT/stage_2_meta_embedding.py --test 
