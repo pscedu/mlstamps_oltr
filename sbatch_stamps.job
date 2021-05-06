@@ -1,0 +1,15 @@
+#!/bin/bash
+
+#SBATCH -N 1
+#SBATCH -p GPU-shared
+#SBATCH -t 5:00:00
+#SBATCH --gpus=2
+
+cd  /ocean/projects/hum180001p/prabha/mlstamps_oltr/
+
+conda activate mlstamps
+
+CUDA_VISIBLE_DEVICES=0,1 python main_shuffler.py --config config/stamps/stage_1.py
+
+# nvidia-smi --format=csv --query-gpu=timestamp,index,utilization.gpu,utilization.memory -l 1 > gpu_file 2>&1 &
+# python inference.py --config config/ImageNet_LT/stage_2_meta_embedding.py --test 

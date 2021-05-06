@@ -238,26 +238,19 @@ class model ():
             print("Epoch-train-loss:'",epoch_loss.item(), " Epoch-train-accuracy:'", epoch_accuracy)
             
             
-            After every epoch, validation
-            self.eval(self.val_data, phase='val')
+#            After every epoch, validation
+            res = self.eval()
 
             # # Under validation, the best model need to be updated
-            # if self.eval_acc_mic_top1 > best_acc:
-            #     best_epoch = copy.deepcopy(epoch)
-            #     best_acc = copy.deepcopy(self.eval_acc_mic_top1)
-            #     best_centroids = copy.deepcopy(self.centroids)
-            #     best_model_weights['feat_model'] = copy.deepcopy(self.networks['feat_model'].state_dict())
-            #     best_model_weights['classifier'] = copy.deepcopy(self.networks['classifier'].state_dict())
+            if res > best_acc:
+                best_epoch = copy.deepcopy(epoch)
+                best_acc = copy.deepcopy(res)
+                best_centroids = copy.deepcopy(self.centroids)
+                best_model_weights['feat_model'] = copy.deepcopy(self.networks['feat_model'].state_dict())
+                best_model_weights['classifier'] = copy.deepcopy(self.networks['classifier'].state_dict())
+                self.save_model(epoch, best_epoch, best_model_weights, best_acc, centroids=best_centroids)
 
-        print()
-        print('Training Complete.')
-        
-
-        print_str = ['Best validation accuracy is %.3f at epoch %d' % (best_acc, best_epoch)]
-        print_write(print_str, self.log_file)
-        # Save the best model and best centroids if calculated
-        self.save_model(epoch, best_epoch, best_model_weights, best_acc, centroids=best_centroids)
-                
+        print('Training Complete.')      
         print('Done')
 
     def eval(self, phase='val', openset=False):
@@ -277,33 +270,46 @@ class model ():
             model.eval()
             model.cuda()
 
-        self.total_logits = torch.empty((0, self.training_opt['num_classes'])).to(self.device)
+        self.total_logits = torch.empty((0, self.training_opt['num_classes']+1)).to(self.device)
         self.total_labels = torch.empty(0, dtype=torch.long).to(self.device)
         self.total_paths = np.empty(0)
 
         # Iterate over dataset
-        for inputs, labels, paths in tqdm(self.data[phase]):
-            inputs, labels = inputs.to(self.device), labels.to(self.device)
+        for valid in tqdm(self.val_data):
+            inputs, labels = valid["image"].to(self.device), valid["name_id"].to(self.device)
 
             # If on training phase, enable gradients
             with torch.set_grad_enabled(False):
 
                 # In validation or testing
-                self.batch_forward(inputs, labels, 
-                                   centroids=self.memory['centroids'],
-                                   phase=phase)
+                centroids = self.memory['centroids']
+                phase = 'val'
+                self.features, self.feature_maps = self.networks['feat_model'](inputs)
+                feature_ext=False
+                # If not just extracting features, calculate logits
+                if not feature_ext:
+
+                    # During training, calculate centroids if needed to 
+                    if phase != 'test':
+                        if centroids and 'FeatureLoss' in self.criterions.keys():
+                            self.centroids = self.criterions['FeatureLoss'].centroids.data
+                        else:
+                            self.centroids = None
+
+                    # Calculate logits with classifier
+                    self.logits, self.direct_memory_feature = self.networks['classifier'](self.features, self.centroids)
                 self.total_logits = torch.cat((self.total_logits, self.logits))
                 self.total_labels = torch.cat((self.total_labels, labels))
-                self.total_paths = np.concatenate((self.total_paths, paths))
+        #        self.total_paths = np.concatenate((self.total_paths, paths))
         
 
         
   
 
         #For top1
-        probs = F.softmax(self.total_logits.detach(), dim=1)#.max(dim=1)
-        print(probs.shape)
-        print( self.total_labels.shape)
+        #probs = F.softmax(self.total_logits.detach(), dim=1)#.max(dim=1)
+        #print(probs.shape)
+        #print( self.total_labels.shape)
 
         #precision = dict()
         #recall = dict()
@@ -315,20 +321,22 @@ class model ():
 
    
         #Uncomment for topk
-        probs, preds = F.softmax(self.total_logits.detach(), dim=1).topk(k=3,dim=1)#.max(dim=1)
+        #probs, preds = F.softmax(self.total_logits.detach(), dim=1).topk(k=5,dim=1)#.max(dim=1)
 
-        print(probs)
-        print(preds)
-        # batch_size = self.total_labels.size(0)
+        batch_size = self.total_labels.size(0)
 
-        # _, pred = self.total_logits.topk(5, 1, True, True)
-        # pred = pred.t()
-        # correct = pred.eq(self.total_labels.view(1, -1).expand_as(pred))
+        _, pred = self.total_logits.topk(5, 1, True, True)
+        pred = pred.t()
+        correct = pred.eq(self.total_labels.view(1, -1).expand_as(pred))
 
-        #correct_k = correct[:5].view(-1).float().sum(0)
-        #res = (correct_k.mul_(100.0 / batch_size)).item()
-        #print("Accuracy :", res)
+        #print(correct.shape)
+
+        correct_k = correct[:5].reshape(-1).float().sum(0)
+        res = (correct_k.mul_(100.0 / batch_size)).item()
+        print("Eval-Accuracy :", res)
         #self.eval_acc_mic_top1 = res 
+
+        return res
 
      
        
@@ -377,16 +385,16 @@ class model ():
      
 
         #For printing inference results
-        for i in range(6146):
-            print("Path: ", self.total_paths[i], preds[i], probs[i])
-            print("Label: ", self.total_labels[i])
-        print(classification_report(self.total_labels, preds))
+        # for i in range(6146):
+        #     print("Path: ", self.total_paths[i], preds[i], probs[i])
+        #     print("Label: ", self.total_labels[i])
+        # print(classification_report(self.total_labels, preds))
         
-        if openset:
-            preds[probs < self.training_opt['open_threshold']] = -1
-            self.openset_acc = mic_acc_cal(preds[self.total_labels == -1],
-                                            self.total_labels[self.total_labels == -1])
-            print('\n\nOpenset Accuracy: %.3f' % self.openset_acc)
+        # if openset:
+        #     preds[probs < self.training_opt['open_threshold']] = -1
+        #     self.openset_acc = mic_acc_cal(preds[self.total_labels == -1],
+        #                                     self.total_labels[self.total_labels == -1])
+        #     print('\n\nOpenset Accuracy: %.3f' % self.openset_acc)
 
         # Calculate the overall accuracy and F measurement
         #self.eval_acc_mic_top1= mic_acc_cal(preds[self.total_labels != -1],
@@ -417,10 +425,7 @@ class model ():
         #             % (self.low_acc_top1),
         #             '\n']
 
-        if phase == 'val':
-            print_write(print_str, self.log_file)
-        else:
-            print(*print_str)
+       
             
     def centroids_cal(self, data):
 
