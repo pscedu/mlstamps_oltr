@@ -102,6 +102,10 @@ if not test_mode:
     print("Validation samples ", len(valid_sampler))
     #print("Testing samples ", len(test_y))
 
+    full_dataloader = torch.utils.data.DataLoader(train_val_set,
+                                              batch_size=training_opt['batch_size'],
+                                              num_workers=training_opt['num_workers'])
+
     train_dataloader = torch.utils.data.DataLoader(train_val_set,
                                               batch_size=training_opt['batch_size'],
                                               num_workers=training_opt['num_workers'], sampler=train_sampler)
@@ -113,7 +117,7 @@ if not test_mode:
                                               num_workers=training_opt['num_workers'], sampler=valid_sampler)
 
 
-    training_model = model(config, train_dataloader, val_dataloader, test=False)
+    training_model = model(config, full_dataloader, train_dataloader, val_dataloader, test=False)
 
     training_model.train()
     dataset.close()

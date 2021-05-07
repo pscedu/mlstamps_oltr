@@ -2,7 +2,7 @@
 config = {}
 
 training_opt = {}
-training_opt['dataset'] = 'Stamps'
+training_opt['dataset'] = 'stamps'
 training_opt['log_dir'] = 'logs/stamps/stage1/meta_embedding'
 training_opt['num_classes'] = 405
 training_opt['batch_size'] = 128

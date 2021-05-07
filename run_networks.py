@@ -21,12 +21,13 @@ from pytorch_lightning import metrics
 
 class model ():
     
-    def __init__(self, config, data, val_data, test=False):
+    def __init__(self, config, full_data, data, val_data, test=False):
 
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.config = config
         self.training_opt = self.config['training_opt']
         self.memory = self.config['memory']
+        self.full_data = full_data
         self.data = data
         self.val_data = val_data
         self.test_mode = test
@@ -53,7 +54,7 @@ class model ():
             self.init_criterions()
             if self.memory['init_centroids']:
                 self.criterions['FeatureLoss'].centroids.data = \
-                    self.centroids_cal(self.data['train_plain'])
+                    self.centroids_cal(self.data)
             
         # Set up log file
         self.log_file = os.path.join(self.training_opt['log_dir'], 'log.txt')
@@ -440,12 +441,28 @@ class model ():
         # Calculate initial centroids only on training data.
         with torch.set_grad_enabled(False):
             
-            for inputs, labels, _ in tqdm(data):
-                inputs, labels = inputs.to(self.device), labels.to(self.device)
+            for x in tqdm(data):
+                inputs, labels = x["image"].to(self.device), x["name_id"].to(self.device)
                 # Calculate Features of each training data
-                self.batch_forward(inputs, feature_ext=True)
+
+                self.features, self.feature_maps = self.networks['feat_model'](inputs)
+                feature_ext=True
+                # If not just extracting features, calculate logits
+                if not feature_ext:
+
+                    # During training, calculate centroids if needed to 
+                    if phase != 'test':
+                        if centroids and 'FeatureLoss' in self.criterions.keys():
+                            self.centroids = self.criterions['FeatureLoss'].centroids.data
+                        else:
+                            self.centroids = None
+
+                    # Calculate logits with classifier
+                    self.logits, self.direct_memory_feature = self.networks['classifier'](self.features, self.centroids)
+
                 # Add all calculated features to center tensor
-                for i in range(len(labels)):
+                print(self.features.shape)
+                for i in range(len(labels)+1):
                     label = labels[i]
                     centroids[label] += self.features[i]
 
