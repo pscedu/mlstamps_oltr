@@ -430,7 +430,7 @@ class model ():
             
     def centroids_cal(self, data):
 
-        centroids = torch.zeros(self.training_opt['num_classes'],
+        centroids = torch.zeros(self.training_opt['num_classes']+1,
                                    self.training_opt['feature_dim']).cuda()
 
         print('Calculating centroids.')
@@ -438,14 +438,14 @@ class model ():
         for model in self.networks.values():
             model.eval()
 
-        # Calculate initial centroids only on training data.
         with torch.set_grad_enabled(False):
             
-            for x in tqdm(data):
-                inputs, labels = x["image"].to(self.device), x["name_id"].to(self.device)
-                # Calculate Features of each training data
+            for p in tqdm(data):
+                inputs, labels = p["image"].to(self.device), p["name_id"].to(self.device)
 
+                # Calculate Features of each training data
                 self.features, self.feature_maps = self.networks['feat_model'](inputs)
+
                 feature_ext=True
                 # If not just extracting features, calculate logits
                 if not feature_ext:
@@ -459,14 +459,17 @@ class model ():
 
                     # Calculate logits with classifier
                     self.logits, self.direct_memory_feature = self.networks['classifier'](self.features, self.centroids)
-
+        
                 # Add all calculated features to center tensor
-                print(self.features.shape)
-                for i in range(len(labels)+1):
+                for i in range(len(labels)):
                     label = labels[i]
                     centroids[label] += self.features[i]
 
         # Average summed features with class count
+
+        class_count = [item["num_instances"] for item in data]
+        print(class_count.numpy().shape)
+
         centroids /= torch.tensor(class_count(data)).float().unsqueeze(1).cuda()
 
         return centroids

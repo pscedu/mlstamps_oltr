@@ -101,7 +101,10 @@ def mic_acc_cal(preds, labels):
     return acc_mic_top1
 
 def class_count (data):
-    labels = np.array(data["name_id"])
+    labels = [item["name_id"] for item in data]
+    labels = torch.cat(labels)
+    labels = labels.numpy()
+
     class_data_num = []
     for l in np.unique(labels):
         class_data_num.append(len(labels[labels == l]))
