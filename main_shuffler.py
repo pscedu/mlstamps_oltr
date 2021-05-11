@@ -120,7 +120,7 @@ if not test_mode:
     training_model = model(config, full_dataloader, train_dataloader, val_dataloader, test=False)
 
     training_model.train()
-    dataset.close()
+    #dataset.close()
 
 
 else:

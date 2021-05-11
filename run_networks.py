@@ -435,7 +435,7 @@ class model ():
 
         print('Calculating centroids.')
 
-        total_classes = self.training_opt['num_classes']
+        total_classes = self.training_opt['num_classes'] + 1
 
         for model in self.networks.values():
             model.eval()
