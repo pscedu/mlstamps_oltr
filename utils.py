@@ -100,7 +100,7 @@ def mic_acc_cal(preds, labels):
     acc_mic_top1 = (preds == labels).sum().item() / len(labels)
     return acc_mic_top1
 
-def class_count (data):
+def class_count (total_classes, data):
     labels = [item["name_id"] for item in data]
     labels = torch.cat(labels)
     labels = labels.numpy()
@@ -108,6 +108,10 @@ def class_count (data):
     class_data_num = []
     for l in np.unique(labels):
         class_data_num.append(len(labels[labels == l]))
+
+    while len(class_data_num) != total_classes:
+        class_data_num.append(1)
+
     return class_data_num
 
 # def dataset_dist (in_loader):

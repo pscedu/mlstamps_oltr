@@ -435,6 +435,8 @@ class model ():
 
         print('Calculating centroids.')
 
+        total_classes = self.training_opt['num_classes']
+
         for model in self.networks.values():
             model.eval()
 
@@ -466,11 +468,7 @@ class model ():
                     centroids[label] += self.features[i]
 
         # Average summed features with class count
-
-        class_count = [item["num_instances"] for item in data]
-        print(class_count.numpy().shape)
-
-        centroids /= torch.tensor(class_count(data)).float().unsqueeze(1).cuda()
+        centroids /= torch.tensor(class_count(total_classes, data)).float().unsqueeze(1).cuda()
 
         return centroids
 
