@@ -459,9 +459,9 @@ class model ():
                 if not feature_ext:
                     # Calculate logits with classifier
                     self.logits, self.direct_memory_feature = self.networks['classifier'](self.features, self.centroids)
-                self.total_logits = torch.cat((self.total_logits, self.logits))
+                # self.total_logits = torch.cat((self.total_logits, self.logits))
 
-                probs, preds = F.softmax(self.total_logits.detach(), dim=1).topk(k=3,dim=1)#.max(dim=1)
+                probs, preds = F.softmax(self.logits.detach(), dim=1).topk(k=3,dim=1)#.max(dim=1)
                 print("Object: ", object_id, preds, probs)
         
 
