@@ -43,7 +43,7 @@ training_opt = config['training_opt']
 # change
 relatin_opt = config['memory']
 dataset = training_opt['dataset']
-training_opt['batch_size'] = 16
+training_opt['batch_size'] = 1
 
 transform = transforms.Compose([
         transforms.ToPILImage(),
