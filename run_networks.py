@@ -450,7 +450,7 @@ class model ():
         # Iterate over dataset
         for valid in tqdm(self.val_data):
             inputs = valid["image"].to(self.device)
-            object_id = valid['objectid'].to(self.device)
+            object_id = valid['objectid'].cpu()
 
             # If on training phase, enable gradients
             with torch.set_grad_enabled(False):
