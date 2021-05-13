@@ -441,7 +441,7 @@ class model ():
             model.eval()
             model.cuda()
 
-        self.total_logits = torch.empty((0, self.training_opt['num_classes']+1)).to(self.device)
+        self.total_logits = torch.empty((0, self.training_opt['num_classes'])).to(self.device)
         self.total_labels = torch.empty(0, dtype=torch.long).to(self.device)
         self.total_paths = np.empty(0)
 
