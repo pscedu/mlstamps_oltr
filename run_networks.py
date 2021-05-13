@@ -15,6 +15,10 @@ import seaborn as sn
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from utils import source_import
+from shuffler.lib.utils import testUtils
+from shuffler.interface.pytorch import datasets
+
 from sklearn import metrics as skmetrics
 from sklearn.metrics import classification_report
 from pytorch_lightning import metrics
@@ -424,7 +428,7 @@ class model ():
                  labels=self.total_labels.detach().cpu().numpy(),
                  paths=self.total_paths)
 
-    def infer(self, phase='test', openset=False):
+    def infer(self, data, phase='test', openset=False):
 
         print_str = ['Phase: %s' % (phase)]
         print_write(print_str, self.log_file)
@@ -463,6 +467,14 @@ class model ():
 
                 probs, preds = F.softmax(self.logits.detach(), dim=1).topk(k=3,dim=1)#.max(dim=1)
                 print("Object: ", object_id, preds, probs)
+                
+                data.addRecord(object_id, 'classification_score1',str(probs[0]))
+                data.addRecord(object_id, 'classification_score2',str(probs[1]))
+                data.addRecord(object_id, 'classification_score3',str(probs[2]))
+                data.addRecord(object_id, 'classification_name_id1',str(preds[0]))
+                data.addRecord(object_id, 'classification_name_id2',str(preds[1]))
+                data.addRecord(object_id, 'classification_name_id3',str(preds[2]))
+                
         
 
         

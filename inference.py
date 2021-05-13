@@ -67,7 +67,7 @@ training_model = model(config, data_loader, data_loader, data_loader, test=True)
 training_model.load_model()
 
 memory = config['memory']
-training_model.infer(phase='test', openset=test_open)
+training_model.infer(data, phase='test', openset=test_open)
 
 # if not os.path.isdir(training_opt['log_dir']):
 #     os.makedirs(training_opt['log_dir'])
