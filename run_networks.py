@@ -456,18 +456,12 @@ class model ():
                 feature_ext=False
                 # If not just extracting features, calculate logits
                 if not feature_ext:
-
-                    # During training, calculate centroids if needed to 
-                    if phase != 'test':
-                        if centroids and 'FeatureLoss' in self.criterions.keys():
-                            self.centroids = self.criterions['FeatureLoss'].centroids.data
-                        else:
-                            self.centroids = None
-
                     # Calculate logits with classifier
                     self.logits, self.direct_memory_feature = self.networks['classifier'](self.features, self.centroids)
                 self.total_logits = torch.cat((self.total_logits, self.logits))
-        #        self.total_paths = np.concatenate((self.total_paths, paths))
+
+                probs, preds = F.softmax(self.total_logits.detach(), dim=1).topk(k=3,dim=1)#.max(dim=1)
+                print("Path: ", self.total_paths[i], preds, probs)
         
 
         
@@ -486,13 +480,6 @@ class model ():
         #for i in range(n_classes):
         #    precision[i], recall[i], _ = metrics.precision_recall_cruve(
 
-   
-        #Uncomment for topk
-        probs, preds = F.softmax(self.total_logits.detach(), dim=1).topk(k=3,dim=1)#.max(dim=1)
-
-        #For printing inference results
-        for i in range(len(probs)):
-            print("Path: ", self.total_paths[i], preds[i], probs[i])
 
      
        
