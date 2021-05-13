@@ -63,7 +63,7 @@ data_loader = torch.utils.data.DataLoader(data,
                                           shuffle=False,
                                           num_workers=1)
 
-training_model = model(config, data_loader, data_loader, test=True)
+training_model = model(config, data_loader, data_loader, data_loader, test=True)
 training_model.load_model()
 
 memory = config['memory']
