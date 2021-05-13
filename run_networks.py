@@ -442,8 +442,6 @@ class model ():
             model.cuda()
 
         self.total_logits = torch.empty((0, self.training_opt['num_classes'])).to(self.device)
-        self.total_labels = torch.empty(0, dtype=torch.long).to(self.device)
-        self.total_paths = np.empty(0)
 
         # Iterate over dataset
         for valid in tqdm(self.val_data):
@@ -469,7 +467,6 @@ class model ():
                     # Calculate logits with classifier
                     self.logits, self.direct_memory_feature = self.networks['classifier'](self.features, self.centroids)
                 self.total_logits = torch.cat((self.total_logits, self.logits))
-                self.total_labels = torch.cat((self.total_labels, labels))
         #        self.total_paths = np.concatenate((self.total_paths, paths))
         
 
