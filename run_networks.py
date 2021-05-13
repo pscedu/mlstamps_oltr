@@ -469,13 +469,13 @@ class model ():
                 print("Object: ", object_id, preds, probs)
 
                 if probs.all() < self.training_opt['open_threshold']:
-                    preds = [-1, -1,-1 ]
-                data.addRecord(object_id, 'classification_score1',str(probs[0].cpu().numpy()))
-                data.addRecord(object_id, 'classification_score2',str(probs[1].cpu().numpy()))
-                data.addRecord(object_id, 'classification_score3',str(probs[2].cpu().numpy()))
-                data.addRecord(object_id, 'classification_name_id1',str(preds[0].cpu().numpy()))
-                data.addRecord(object_id, 'classification_name_id2',str(preds[1].cpu().numpy()))
-                data.addRecord(object_id, 'classification_name_id3',str(preds[2].cpu().numpy()))
+                    preds = [-1, -1, -1 ]
+                data.addRecord(object_id.numpy(), 'classification_score1',str(probs[0].cpu().numpy()))
+                data.addRecord(object_id.numpy(), 'classification_score2',str(probs[1].cpu().numpy()))
+                data.addRecord(object_id.numpy(), 'classification_score3',str(probs[2].cpu().numpy()))
+                data.addRecord(object_id.numpy(), 'classification_name_id1',str(preds[0].cpu().numpy()))
+                data.addRecord(object_id.numpy(), 'classification_name_id2',str(preds[1].cpu().numpy()))
+                data.addRecord(object_id.numpy(), 'classification_name_id3',str(preds[2].cpu().numpy()))
                 
         
 
