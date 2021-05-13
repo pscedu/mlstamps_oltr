@@ -447,14 +447,13 @@ class model ():
 
         # Iterate over dataset
         for valid in tqdm(self.val_data):
-            inputs, labels = valid["image"].to(self.device), valid["name_id"].to(self.device)
+            inputs= valid["image"]. to(self.device)
 
             # If on training phase, enable gradients
             with torch.set_grad_enabled(False):
 
                 # In validation or testing
                 centroids = self.memory['centroids']
-                phase = 'val'
                 self.features, self.feature_maps = self.networks['feat_model'](inputs)
                 feature_ext=False
                 # If not just extracting features, calculate logits
