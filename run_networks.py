@@ -445,7 +445,8 @@ class model ():
 
         # Iterate over dataset
         for valid in tqdm(self.val_data):
-            inputs= valid["image"]. to(self.device)
+            inputs = valid["image"].to(self.device)
+            object_id = valid['objectid'].to(self.device)
 
             # If on training phase, enable gradients
             with torch.set_grad_enabled(False):
@@ -461,7 +462,7 @@ class model ():
                 self.total_logits = torch.cat((self.total_logits, self.logits))
 
                 probs, preds = F.softmax(self.total_logits.detach(), dim=1).topk(k=3,dim=1)#.max(dim=1)
-                print("Path: ", self.total_paths[i], preds, probs)
+                print("Object: ", object_id, preds, probs)
         
 
         
