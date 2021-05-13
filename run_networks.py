@@ -467,13 +467,15 @@ class model ():
 
                 probs, preds = F.softmax(self.logits.detach(), dim=1).topk(k=3,dim=1)#.max(dim=1)
                 print("Object: ", object_id, preds, probs)
-                
-                data.addRecord(object_id, 'classification_score1',str(probs[0]))
-                data.addRecord(object_id, 'classification_score2',str(probs[1]))
-                data.addRecord(object_id, 'classification_score3',str(probs[2]))
-                data.addRecord(object_id, 'classification_name_id1',str(preds[0]))
-                data.addRecord(object_id, 'classification_name_id2',str(preds[1]))
-                data.addRecord(object_id, 'classification_name_id3',str(preds[2]))
+
+                if probs.all() < self.training_opt['open_threshold']:
+                    preds = [-1, -1,-1 ]
+                data.addRecord(object_id, 'classification_score1',str(probs[0].numpy()))
+                data.addRecord(object_id, 'classification_score2',str(probs[1].numpy()))
+                data.addRecord(object_id, 'classification_score3',str(probs[2].numpy()))
+                data.addRecord(object_id, 'classification_name_id1',str(preds[0].numpy()))
+                data.addRecord(object_id, 'classification_name_id2',str(preds[1].numpy()))
+                data.addRecord(object_id, 'classification_name_id3',str(preds[2].numpy()))
                 
         
 
