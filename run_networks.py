@@ -239,7 +239,7 @@ class model ():
             print("Epoch-train-loss:'",epoch_loss.item(), " Epoch-train-accuracy:'", epoch_accuracy)
             
             
-#            After every epoch, validation
+            #After every epoch, validation
             res = self.eval()
 
             # # Under validation, the best model need to be updated
@@ -335,98 +335,8 @@ class model ():
         correct_k = correct[:5].reshape(-1).float().sum(0)
         res = (correct_k.mul_(100.0 / batch_size)).item()
         print("Eval-Accuracy :", res)
-        #self.eval_acc_mic_top1 = res 
-
         return res
-
-     
-       
-        ##x = metrics.functional.classification.multiclass_precision_recall_curve(probs, self.total_labels)
-        ##tup = np.shape(x)
-        #print(x[0])
-        #print(x[1])
-        #print(x[2])
-
-        #confusion matrix
-        ## probs, preds = F.softmax(self.total_logits.detach(), dim=1).max(dim=1)
-        ## cm = skmetrics.confusion_matrix(self.total_labels.cpu(), preds.cpu())
-        ## cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-        ## df_cm = pd.DataFrame(cm, range(200), range(200))
-        ## sn.set(font_scale=1.0) # for label size
-        ## cmap = sn.cm.rocket_r
-        ## sn.heatmap(df_cm, cmap=cmap) # font size
-        ## plt.savefig("cm1.png")
-
-        #PR curve
-        # For each class
-        ##precision = dict()
-        ##recall = dict()
-        ##average_precision = dict()
-        ##self.total_logits=self.total_logits.cpu()
-        ##probs = F.softmax(self.total_logits.detach(), dim=1)
-        ##labels = F.one_hot(self.total_labels.cpu())
-        #for i in range(200):
-        #    precision[i], recall[i], _ =  skmetrics.precision_recall_curve(y_true=labels[i], probas_pred=probs[i])
-                                                        
-        #    average_precision[i] =  skmetrics.average_precision_score(y_true=labels[i], y_score=probs[i])
-        # A "micro-average": quantifying score on all classes jointly
-        # precision["weighted"], recall["weighted"], _ = skmetrics.precision_recall_curve(y_true=labels.numpy().ravel(),probas_pred=probs.numpy().ravel())
-        # average_precision["weighted"] = skmetrics.average_precision_score(y_true=labels, y_score=probs, average="weighted")
-        # print('Average precision score, weight-averaged over all classes: {0:0.2f}'.format(average_precision["weighted"]))
-        # plt.figure()
-        # plt.step(recall['weighted'], precision['weighted'], where='post')
-        # plt.xlabel('Recall')
-        # plt.ylabel('Precision')
-        # plt.ylim([0.0, 1.05])
-        # plt.xlim([0.0, 1.0])
-        # plt.plot( [0.0,1.0],[1.0,0.0] )
-        # plt.title('Average precision score, micro-averaged over all classes: AP={0:0.2f}'.format(average_precision["weighted"]))
-        # plt.savefig("pr_curve_weighted.png")
-        
-     
-
-        #For printing inference results
-        # for i in range(6146):
-        #     print("Path: ", self.total_paths[i], preds[i], probs[i])
-        #     print("Label: ", self.total_labels[i])
-        # print(classification_report(self.total_labels, preds))
-        
-        # if openset:
-        #     preds[probs < self.training_opt['open_threshold']] = -1
-        #     self.openset_acc = mic_acc_cal(preds[self.total_labels == -1],
-        #                                     self.total_labels[self.total_labels == -1])
-        #     print('\n\nOpenset Accuracy: %.3f' % self.openset_acc)
-
-        # Calculate the overall accuracy and F measurement
-        #self.eval_acc_mic_top1= mic_acc_cal(preds[self.total_labels != -1],
-        #                                    self.total_labels[self.total_labels != -1])
-        #self.eval_f_measure = F_measure(preds, self.total_labels, openset=openset,
-        #                                theta=self.training_opt['open_threshold'])
-        #self.many_acc_top1, \
-        #self.median_acc_top1, \
-        #self.low_acc_top1 = shot_acc(preds[self.total_labels != -1],
-        #                             self.total_labels[self.total_labels != -1], 
-        #                             self.data['train'])
-        # Top-1 accuracy and additional string
-        #print_str = ['\n\n',
-        #             'Phase: %s' 
-        #             % (phase),
-        #             '\n\n',
-        #             'Evaluation_accuracy_micro_top1: %.3f' 
-        #             % (self.eval_acc_mic_top1),
-        #             '\n',
-        #             'Averaged F-measure: %.3f' 
-        #             % (self.eval_f_measure),
-        #             '\n',
-        #             'Many_shot_accuracy_top1: %.3f' 
-        #             % (self.many_acc_top1),
-        #             'Median_shot_accuracy_top1: %.3f' 
-        #             % (self.median_acc_top1),
-        #             'Low_shot_accuracy_top1: %.3f' 
-        #             % (self.low_acc_top1),
-        #             '\n']
-
-       
+    
             
     def centroids_cal(self, data):
 
@@ -513,3 +423,143 @@ class model ():
                  logits=self.total_logits.detach().cpu().numpy(), 
                  labels=self.total_labels.detach().cpu().numpy(),
                  paths=self.total_paths)
+
+    def infer(self, phase='test', openset=False):
+
+        print_str = ['Phase: %s' % (phase)]
+        print_write(print_str, self.log_file)
+        time.sleep(0.25)
+
+        if openset:
+            print('Under openset test mode. Open threshold is %.1f' 
+                  % self.training_opt['open_threshold'])
+ 
+        torch.cuda.empty_cache()
+
+        # In validation or testing mode, set model to eval() and initialize running loss/correct
+        for model in self.networks.values():
+            model.eval()
+            model.cuda()
+
+        self.total_logits = torch.empty((0, self.training_opt['num_classes']+1)).to(self.device)
+        self.total_labels = torch.empty(0, dtype=torch.long).to(self.device)
+        self.total_paths = np.empty(0)
+
+        # Iterate over dataset
+        for valid in tqdm(self.val_data):
+            inputs, labels = valid["image"].to(self.device), valid["name_id"].to(self.device)
+
+            # If on training phase, enable gradients
+            with torch.set_grad_enabled(False):
+
+                # In validation or testing
+                centroids = self.memory['centroids']
+                phase = 'val'
+                self.features, self.feature_maps = self.networks['feat_model'](inputs)
+                feature_ext=False
+                # If not just extracting features, calculate logits
+                if not feature_ext:
+
+                    # During training, calculate centroids if needed to 
+                    if phase != 'test':
+                        if centroids and 'FeatureLoss' in self.criterions.keys():
+                            self.centroids = self.criterions['FeatureLoss'].centroids.data
+                        else:
+                            self.centroids = None
+
+                    # Calculate logits with classifier
+                    self.logits, self.direct_memory_feature = self.networks['classifier'](self.features, self.centroids)
+                self.total_logits = torch.cat((self.total_logits, self.logits))
+                self.total_labels = torch.cat((self.total_labels, labels))
+        #        self.total_paths = np.concatenate((self.total_paths, paths))
+        
+
+        
+  
+
+        #For top1
+        #probs = F.softmax(self.total_logits.detach(), dim=1)#.max(dim=1)
+        #print(probs.shape)
+        #print( self.total_labels.shape)
+
+        #precision = dict()
+        #recall = dict()
+        #average_precision = dict()
+
+        #n_classes = 201
+        #for i in range(n_classes):
+        #    precision[i], recall[i], _ = metrics.precision_recall_cruve(
+
+   
+        #Uncomment for topk
+        probs, preds = F.softmax(self.total_logits.detach(), dim=1).topk(k=3,dim=1)#.max(dim=1)
+
+        #For printing inference results
+        for i in range(len(probs)):
+            print("Path: ", self.total_paths[i], preds[i], probs[i])
+
+     
+       
+        ##x = metrics.functional.classification.multiclass_precision_recall_curve(probs, self.total_labels)
+        ##tup = np.shape(x)
+        #print(x[0])
+        #print(x[1])
+        #print(x[2])
+
+        #confusion matrix
+        ## probs, preds = F.softmax(self.total_logits.detach(), dim=1).max(dim=1)
+        ## cm = skmetrics.confusion_matrix(self.total_labels.cpu(), preds.cpu())
+        ## cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        ## df_cm = pd.DataFrame(cm, range(200), range(200))
+        ## sn.set(font_scale=1.0) # for label size
+        ## cmap = sn.cm.rocket_r
+        ## sn.heatmap(df_cm, cmap=cmap) # font size
+        ## plt.savefig("cm1.png")
+
+        #PR curve
+        # For each class
+        ##precision = dict()
+        ##recall = dict()
+        ##average_precision = dict()
+        ##self.total_logits=self.total_logits.cpu()
+        ##probs = F.softmax(self.total_logits.detach(), dim=1)
+        ##labels = F.one_hot(self.total_labels.cpu())
+        #for i in range(200):
+        #    precision[i], recall[i], _ =  skmetrics.precision_recall_curve(y_true=labels[i], probas_pred=probs[i])
+                                                        
+        #    average_precision[i] =  skmetrics.average_precision_score(y_true=labels[i], y_score=probs[i])
+        # A "micro-average": quantifying score on all classes jointly
+        # precision["weighted"], recall["weighted"], _ = skmetrics.precision_recall_curve(y_true=labels.numpy().ravel(),probas_pred=probs.numpy().ravel())
+        # average_precision["weighted"] = skmetrics.average_precision_score(y_true=labels, y_score=probs, average="weighted")
+        # print('Average precision score, weight-averaged over all classes: {0:0.2f}'.format(average_precision["weighted"]))
+        # plt.figure()
+        # plt.step(recall['weighted'], precision['weighted'], where='post')
+        # plt.xlabel('Recall')
+        # plt.ylabel('Precision')
+        # plt.ylim([0.0, 1.05])
+        # plt.xlim([0.0, 1.0])
+        # plt.plot( [0.0,1.0],[1.0,0.0] )
+        # plt.title('Average precision score, micro-averaged over all classes: AP={0:0.2f}'.format(average_precision["weighted"]))
+        # plt.savefig("pr_curve_weighted.png")
+        
+     
+
+        
+        
+        # if openset:
+        #     preds[probs < self.training_opt['open_threshold']] = -1
+        #     self.openset_acc = mic_acc_cal(preds[self.total_labels == -1],
+        #                                     self.total_labels[self.total_labels == -1])
+        #     print('\n\nOpenset Accuracy: %.3f' % self.openset_acc)
+
+        # Calculate the overall accuracy and F measurement
+        #self.eval_acc_mic_top1= mic_acc_cal(preds[self.total_labels != -1],
+        #                                    self.total_labels[self.total_labels != -1])
+        #self.eval_f_measure = F_measure(preds, self.total_labels, openset=openset,
+        #                                theta=self.training_opt['open_threshold'])
+        #self.many_acc_top1, \
+        #self.median_acc_top1, \
+        #self.low_acc_top1 = shot_acc(preds[self.total_labels != -1],
+        #                             self.total_labels[self.total_labels != -1], 
+        #                             self.data['train'])
+        # Top-1 accuracy and additional string
