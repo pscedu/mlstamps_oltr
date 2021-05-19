@@ -466,16 +466,22 @@ class model ():
                 # self.total_logits = torch.cat((self.total_logits, self.logits))
 
                 probs, preds = F.softmax(self.logits.detach(), dim=1).topk(k=3,dim=1)#.max(dim=1)
+
+                probs = probs.cpu().numpy()
+                preds = preds.cpu().numpy()
+
                 print("Object: ", object_id, preds, probs)
 
-                if probs.all() < self.training_opt['open_threshold']:
-                    preds = [-1, -1, -1 ]
-                data.addRecord(object_id.numpy(), 'classification_score1',str(probs[0].cpu().numpy()))
-                data.addRecord(object_id.numpy(), 'classification_score2',str(probs[1].cpu().numpy()))
-                data.addRecord(object_id.numpy(), 'classification_score3',str(probs[2].cpu().numpy()))
-                data.addRecord(object_id.numpy(), 'classification_name_id1',str(preds[0].cpu().numpy()))
-                data.addRecord(object_id.numpy(), 'classification_name_id2',str(preds[1].cpu().numpy()))
-                data.addRecord(object_id.numpy(), 'classification_name_id3',str(preds[2].cpu().numpy()))
+                if (probs < self.training_opt['open_threshold']).all():
+                    print("check")
+                    probs = [[-1, -1, -1]]
+
+                data.addRecord(object_id.numpy(), 'classification_score1',str(probs[0][0]))
+                data.addRecord(object_id.numpy(), 'classification_score2',str(probs[0][1]))
+                data.addRecord(object_id.numpy(), 'classification_score3',str(probs[0][2]))
+                data.addRecord(object_id.numpy(), 'classification_name_id1',str(preds[0][0]))
+                data.addRecord(object_id.numpy(), 'classification_name_id2',str(preds[0][1]))
+                data.addRecord(object_id.numpy(), 'classification_name_id3',str(preds[0][2]))
                 
         
 
