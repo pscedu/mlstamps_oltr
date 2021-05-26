@@ -473,8 +473,7 @@ class model ():
                 print("Object: ", object_id, preds, probs)
 
                 if (probs < self.training_opt['open_threshold']).all():
-                    print("check")
-                    probs = [[-1, -1, -1]]
+                    preds = [[-1, -1, -1]]
 
                 data.addRecord(object_id.numpy(), 'classification_score1',str(probs[0][0]))
                 data.addRecord(object_id.numpy(), 'classification_score2',str(probs[0][1]))
