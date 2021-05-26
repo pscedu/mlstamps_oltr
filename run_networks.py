@@ -14,6 +14,7 @@ np.set_printoptions(threshold=np.inf)
 import seaborn as sn
 import pandas as pd
 import matplotlib.pyplot as plt
+import json
 
 from utils import source_import
 from shuffler.lib.utils import testUtils
@@ -126,8 +127,7 @@ class model ():
                                               step_size=self.scheduler_params['step_size'],
                                               gamma=self.scheduler_params['gamma'])
         return optimizer, scheduler    
-
-        
+      
     def train(self):
 
         # When training the network
@@ -340,7 +340,6 @@ class model ():
         res = (correct_k.mul_(100.0 / batch_size)).item()
         print("Eval-Accuracy :", res)
         return res
-    
             
     def centroids_cal(self, data):
 
@@ -463,24 +462,35 @@ class model ():
                 if not feature_ext:
                     # Calculate logits with classifier
                     self.logits, self.direct_memory_feature = self.networks['classifier'](self.features, self.centroids)
-                # self.total_logits = torch.cat((self.total_logits, self.logits))
+                #self.total_logits = torch.cat((self.total_logits, self.logits))
 
                 probs, preds = F.softmax(self.logits.detach(), dim=1).topk(k=3,dim=1)#.max(dim=1)
 
                 probs = probs.cpu().numpy()
                 preds = preds.cpu().numpy()
 
-                print("Object: ", object_id, preds, probs)
-
                 if (probs < self.training_opt['open_threshold']).all():
-                    preds = [[-1, -1, -1]]
+                    preds = [-1, -1, -1]
+                else:
+                    preds = preds[0].tolist()
+                    
+                probs = probs[0].tolist()
+                object_id = object_id.numpy().tolist()
 
-                data.addRecord(object_id.numpy(), 'classification_score1',str(probs[0][0]))
-                data.addRecord(object_id.numpy(), 'classification_score2',str(probs[0][1]))
-                data.addRecord(object_id.numpy(), 'classification_score3',str(probs[0][2]))
-                data.addRecord(object_id.numpy(), 'classification_name_id1',str(preds[0][0]))
-                data.addRecord(object_id.numpy(), 'classification_name_id2',str(preds[0][1]))
-                data.addRecord(object_id.numpy(), 'classification_name_id3',str(preds[0][2]))
+                print("Object: ", object_id, preds, probs)
+                json_data = { object_id[0] : [{'classification_scores':probs, 'classification_name_ids':preds}]}
+
+                with open("inference_results.json", "a") as write_file:
+                    json.dump(json_data, write_file, indent=2)
+
+                # data.addRecord(object_id.numpy(), 'classification_score1',str(probs[0][0]))
+                # data.addRecord(object_id.numpy(), 'classification_score2',str(probs[0][1]))
+                # data.addRecord(object_id.numpy(), 'classification_score3',str(probs[0][2]))
+                # data.addRecord(object_id.numpy(), 'classification_name_id1',str(preds[0][0]))
+                # data.addRecord(object_id.numpy(), 'classification_name_id2',str(preds[0][1]))
+                # data.addRecord(object_id.numpy(), 'classification_name_id3',str(preds[0][2]))
+
+        write_file.close()
                 
         
 
