@@ -135,4 +135,5 @@ dataset
 model-checkpoints-and-logs
 OLTRDataset
 logs
+slurm-*
 

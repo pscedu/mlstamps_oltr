@@ -20,6 +20,7 @@ from torchvision import transforms
 # LOAD CONFIGURATIONS
 
 sys.path.append('/ocean/projects/hum180001p/prabha/mlstamps_oltr')
+#db_file = '/ocean/projects/hum180001p/etoropov/campaign7/predicted-trained-on-campaign3to6/9images-with-bad-one-6Kx4K.db'
 db_file = '/ocean/projects/hum180001p/etoropov/campaign7/predicted-trained-on-campaign3to6/all-but3to6-6Kx4K.db'
 rootdir = '/ocean/projects/hum180001p/shared/data'
 
