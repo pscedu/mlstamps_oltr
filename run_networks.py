@@ -448,9 +448,9 @@ class model ():
 
         # Iterate over dataset
         for valid in tqdm(self.val_data):
+            if valid is None:
+                continue
             inputs = valid["image"].to(self.device)
-            if inputs == None:
-                break
             object_id = valid['objectid'].cpu()
 
             # If on training phase, enable gradients
@@ -492,7 +492,7 @@ class model ():
                 # data.addRecord(object_id.numpy(), 'classification_name_id2',str(preds[0][1]))
                 # data.addRecord(object_id.numpy(), 'classification_name_id3',str(preds[0][2]))
 
-        write_file.close()
+        #write_file.close()
                 
         
 

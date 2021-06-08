@@ -55,13 +55,14 @@ def buildImageSample(image_entry, cursor, imreader, where_object='TRUE'):
 
     # Load the image and mask.
     logging.debug('Reading image "%s"' % imagefile)
-    try:
-        image = imreader.imread(imagefile)
-        mask = imreader.maskread(maskfile) if maskfile is not None else None
-    except ValueError:
-        traceback.print_exc()
-        logging.error('Reading image or mask failed. Returning None.')
-        return None
+    image = imreader.imread(imagefile)
+    mask = imreader.maskread(maskfile) if maskfile is not None else None
+    # try:
+        
+    # except ValueError:
+    #     traceback.print_exc()
+    #     logging.error('Reading image or mask failed. Returning None.')
+    #     return None
 
     imagename = backendDb.imageField(image_entry, 'name')
     imagescore = backendDb.imageField(image_entry, 'score')
@@ -114,13 +115,15 @@ def buildObjectSample(object_entry, c, imreader):
     logging.debug('Reading object %d from %s imagefile' %
                   (objectid, imagefile))
 
-    try:
-        image = imreader.imread(imagefile)
-        mask = imreader.maskread(maskfile) if maskfile is not None else None
-    except ValueError:
-        traceback.print_exc()
-        logging.error('Reading image or mask failed. Returning None.')
-        return None
+    image = imreader.imread(imagefile)
+    mask = imreader.maskread(maskfile) if maskfile is not None else None
+
+    # try:
+        
+    # except ValueError:
+    #     traceback.print_exc()
+    #     logging.error('Reading image or mask failed. Returning None.')
+    #     return None
 
     roi = backendDb.objectField(object_entry, 'roi')
     logging.debug('Roi: %s' % roi)

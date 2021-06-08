@@ -58,6 +58,7 @@ data = datasets.ObjectDataset(db_file,
                             mode='w',
                             used_keys=['image', 'objectid'],
                             transform_group={'image': transform})
+ 
 
 data_loader = torch.utils.data.DataLoader(data,
                                           batch_size=training_opt['batch_size'],

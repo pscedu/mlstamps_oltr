@@ -7,6 +7,8 @@ import traceback
 from pprint import pformat
 from operator import itemgetter
 import PIL
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 '''
 The support for reading and writing media in the form of single files and
 multiple files, which are supported by our backend imageio:
