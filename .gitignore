@@ -136,4 +136,5 @@ model-checkpoints-and-logs
 OLTRDataset
 logs
 slurm-*
+inference_results*.json
 
