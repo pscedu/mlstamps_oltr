@@ -9,7 +9,7 @@ print (detect_conf[0][1])
 print (detect_conf[0][2])    
 
 
-f = open('inference_results.json') as f:
+f = open('inference_results.json')
 class_dict = json.loads(f)
         
 print("Printing each JSON Decoded Object")
