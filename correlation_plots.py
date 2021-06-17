@@ -13,7 +13,6 @@ f = open('inference_results.json')
 class_dict = json.load(f)
         
 print("Printing each JSON Decoded Object")
-for c in class_dict:
-    print(c)
-    break
+print(c[0])
+   # break
   
