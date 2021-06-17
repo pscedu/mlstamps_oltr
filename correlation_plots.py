@@ -9,15 +9,11 @@ print (detect_conf[0][1])
 print (detect_conf[0][2])    
 
 
-classification_scores = []
-print("Started Reading JSON file which contains multiple JSON document")
-with open('inference_results.json') as f:
-    for jsonObj in f:
-        class_dict = json.loads(jsonObj)
-        classification_scores.append(class_dict)
-
+f = open('inference_results.json') as f:
+class_dict = json.loads(f)
+        
 print("Printing each JSON Decoded Object")
-for c in classification_scores:
+for c in class_dict:
     print(c)
     break
   
