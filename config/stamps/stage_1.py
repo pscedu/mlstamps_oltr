@@ -2,7 +2,13 @@
 config = {}
 
 training_opt = {}
+
+db_file = '/ocean/projects/hum180001p/etoropov/campaign6/crops/campaign3to6-6Kx4K.v7.1-croppedStamps.db'
+rootdir = '/ocean/projects/hum180001p/shared/data'
+
 training_opt['dataset'] = 'Stamps'
+training_opt['db_file'] = '/ocean/projects/hum180001p/shared/data'
+training_opt['rootdir'] = '/ocean/projects/hum180001p/shared/data'
 training_opt['log_dir'] = 'logs/stamps/stage1'
 training_opt['num_classes'] = 405
 training_opt['batch_size'] = 128
