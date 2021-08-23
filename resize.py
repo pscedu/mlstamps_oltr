@@ -2,8 +2,8 @@
 from PIL import Image
 import os, sys
 
-dir = "/ocean/projects/pscstaff/rajanie/MLStamps/long-tail/OpenLongTailRecognition-OLTR/OLTRDataset/OLTRDataset_1/test_inference"
-out = '/ocean/projects/pscstaff/rajanie/MLStamps/long-tail/OpenLongTailRecognition-OLTR/OLTRDataset/OLTRDataset_1/test_inference_256x256'
+dir = "/input/directory/path"
+out = '/output/directory/path'
 
 def resize():
     count = 0

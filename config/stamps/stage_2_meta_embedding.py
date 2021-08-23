@@ -3,8 +3,8 @@ config = {}
 
 training_opt = {}
 training_opt['dataset'] = 'stamps'
-training_opt['db_file'] = '/ocean/projects/hum180001p/shared/data'
-training_opt['rootdir'] = '/ocean/projects/hum180001p/shared/data'
+training_opt['db_file'] = 'path/to/file'
+training_opt['rootdir'] = 'path/to/directory'
 training_opt['log_dir'] = 'logs/stamps/stage2/meta_embedding'
 training_opt['num_classes'] = 405
 training_opt['batch_size'] = 128

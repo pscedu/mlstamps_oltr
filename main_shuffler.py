@@ -20,10 +20,9 @@ from torch.utils.data.sampler import SubsetRandomSampler
 
 # logging.basicConfig(level=1)
 
-# sys.path.append('/ocean/projects/hum180001p/prabha/mlstamps_oltr')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--config', default='/ocean/projects/hum180001p/shared/src/ml4docs/mlstamps_oltr/config/stamps/stage_1.py', type=str)
+parser.add_argument('--config', default='config/stamps/stage_1.py', type=str)
 parser.add_argument('--test', default=False, action='store_true')
 parser.add_argument('--test_open', default=False, action='store_true')
 parser.add_argument('--output_logits', default=False)

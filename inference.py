@@ -19,13 +19,12 @@ from torchvision import transforms
 # ================
 # LOAD CONFIGURATIONS
 
-sys.path.append('/ocean/projects/hum180001p/prabha/mlstamps_oltr')
-#db_file = '/ocean/projects/hum180001p/etoropov/campaign7/predicted-trained-on-campaign3to6/9images-with-bad-one-6Kx4K.db'
-db_file = '/ocean/projects/hum180001p/etoropov/campaign7/predicted-trained-on-campaign3to6/all-but3to6-6Kx4K.db'
-rootdir = '/ocean/projects/hum180001p/shared/data'
+
+db_file = '/path/to/file'
+rootdir = '/path/to/dir'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--config', default='/ocean/projects/hum180001p/prabha/mlstamps_oltr/config/stamps/stage_2_meta_embedding.py', type=str)
+parser.add_argument('--config', default='config/stamps/stage_2_meta_embedding.py', type=str)
 parser.add_argument('--test', default=True, action='store_true')
 parser.add_argument('--test_open', default=True, action='store_true')
 parser.add_argument('--output_logits', default=True)
@@ -88,7 +87,6 @@ training_model.infer(data, phase='test', openset=test_open)
 #                                 shuffle=False)
 #         for x in ['train', 'test']}
 
-#testsample="/pylon5/pscstaff/rajanie/MLStamps/long-tail/OpenLongTailRecognition-OLTR/OLTRDataset/OLTRDataset_1/campaign3to5/arita/000008927.jpg"
 
 # training_model = model(config, data, test=True)
 # training_model.load_model()
