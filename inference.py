@@ -19,13 +19,11 @@ from torchvision import transforms
 # ================
 # LOAD CONFIGURATIONS
 
-sys.path.append('/ocean/projects/hum180001p/prabha/mlstamps_oltr')
-
-db_file = '/ocean/projects/hum180001p/etoropov/campaign7/predicted-trained-on-campaign3to6/all-but3to6-6Kx4K.db'
-rootdir = '/ocean/projects/hum180001p/shared/data'
-
 parser = argparse.ArgumentParser()
-parser.add_argument('--config', default='/ocean/projects/hum180001p/prabha/mlstamps_oltr/config/stamps/stage_2_meta_embedding.py', type=str)
+parser.add_argument('--config', default='config/stamps/stage_2_meta_embedding.py', type=str)
+parser.add_argument('--root_dir', default='', type=str)
+parser.add_argument('--db_file', default='', type=str)
+parser.add_argument('--log_dir', default='', type=str)
 parser.add_argument('--test', default=True, action='store_true')
 parser.add_argument('--test_open', default=True, action='store_true')
 parser.add_argument('--output_logits', default=True)
@@ -69,26 +67,11 @@ training_model = model(config, data_loader, data_loader, data_loader, test=True)
 training_model.load_model()
 
 memory = config['memory']
-training_model.infer(data, phase='test', openset=test_open)
+training_model.infer(data, phase='test', log_dir= args.log_dir,openset=test_open)
 
 # if not os.path.isdir(training_opt['log_dir']):
 #     os.makedirs(training_opt['log_dir'])
 
-# print('Loading dataset from: %s' % data_root[dataset.rstrip('_LT')])
-# pprint.pprint(config)
-
-
-# print('Under testing phase, we load training data simply to calculate training data number for each class.')
-
-# data = {x: dataloader.load_data(data_root=data_root[dataset.rstrip('_LT')], dataset=dataset, phase=x,
-#                                 batch_size=training_opt['batch_size'],
-#                                 sampler_dic=None, 
-#                                 test_open=test_open,
-#                                 num_workers=training_opt['num_workers'],
-#                                 shuffle=False)
-#         for x in ['train', 'test']}
-
-#testsample="/pylon5/pscstaff/rajanie/MLStamps/long-tail/OpenLongTailRecognition-OLTR/OLTRDataset/OLTRDataset_1/campaign3to5/arita/000008927.jpg"
 
 # training_model = model(config, data, test=True)
 # training_model.load_model()

@@ -404,7 +404,7 @@ class model ():
                  labels=self.total_labels.detach().cpu().numpy(),
                  paths=self.total_paths)
 
-    def infer(self, data, phase='test', openset=False):
+    def infer(self, data, phase='test', log_dir=log_dir, openset=False):
 
         print_str = ['Phase: %s' % (phase)]
         print_write(print_str, self.log_file)
@@ -459,15 +459,8 @@ class model ():
                 print("Object: ", object_id, preds, probs)
                 json_data = { object_id[0] : [{'classification_scores':probs, 'classification_name_ids':preds}]}
 
-                with open("inference_results.json", "a") as write_file:
+                with open(os.path.join(log_dir,"inference_results.json"), "a") as write_file:
                     json.dump(json_data, write_file, indent=2)
-
-                # data.addRecord(object_id.numpy(), 'classification_score1',str(probs[0][0]))
-                # data.addRecord(object_id.numpy(), 'classification_score2',str(probs[0][1]))
-                # data.addRecord(object_id.numpy(), 'classification_score3',str(probs[0][2]))
-                # data.addRecord(object_id.numpy(), 'classification_name_id1',str(preds[0][0]))
-                # data.addRecord(object_id.numpy(), 'classification_name_id2',str(preds[0][1]))
-                # data.addRecord(object_id.numpy(), 'classification_name_id3',str(preds[0][2]))
 
         #write_file.close()
                 
