@@ -30,9 +30,8 @@ python main_shuffler.py --config config/stamps/stage_2_meta_embedding.py --test
 python main_shuffler.py --config config/stamps/stage_2_meta_embedding.py --test_open
 ```
 
-
-## CAUTION
-The current code was prepared using single GPU. The use of multi-GPU can cause problems except for the first stage of `Places-LT`. 
+## Things to Note:
+1. Please keep number of classes as total number of classes + 1.
 
 ## License and Citation
 ```
