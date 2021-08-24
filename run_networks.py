@@ -61,7 +61,7 @@ class model ():
                     self.centroids_cal(self.data)
             
         # Set up log file
-        self.log_file = os.path.join(self.training_opt['log_dir'], 'log.txt')
+        #self.log_file = os.path.join(self.training_opt['log_dir'], 'log.txt')
         print("Logging into ", self.log_file)
         # if os.path.isfile(self.log_file):
         #     os.remove(self.log_file)
