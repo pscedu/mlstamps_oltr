@@ -32,7 +32,7 @@ python main_shuffler.py --config config/stamps/stage_2_meta_embedding.py --test_
 
 ## Things to Note:
 1. Please keep number of classes as total number of classes + 1.
-2. There are some hard-coded paths in config/stage_1 and config/stage_2_meta_embedding files. 
+2. There are some hard-coded paths in `config/stage_1.py` and `config/stage_2_meta_embedding.py` files. 
 
 ## License and Citation
 ```
