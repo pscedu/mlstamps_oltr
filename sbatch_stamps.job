@@ -6,7 +6,7 @@
 #SBATCH --gpus=1
 
 set +x
-cd  /ocean/projects/hum180001p/prabha/mlstamps_oltr/
+cd  ${PROJECT}/${USER}/mlstamps_oltr/
 
 conda activate mlstamps
 
